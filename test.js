@@ -11,13 +11,10 @@ suite
   });
 }, { defer: true })
 .on('cycle', function (event) {
-  console.log(event.target.toString());
-})
-.on('complete', function (event) {
-  console.log('Fastest is', this.filter('fastest').pluck('name'));
+  document.querySelector('#output').innerHTML += '<p>' + event.target.toString() + '</p>';
 })
 .on('error', function (event) {
-  console.log('Error has occured: "' + event.target.error.message + '" in ' + event.target.name);
+  document.querySelector('#output').innerHTML += '<p>Error has occured: "' + event.target.error.message + '" in ' + event.target.name + '</p>';
 })
 .run();
 
