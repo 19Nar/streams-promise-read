@@ -22,8 +22,6 @@ suite
 .run();
 */
 
-loadHandler();
-
 function loadHandler() {
   console.log("loaded");
   execute(100).then(function() {
@@ -46,25 +44,24 @@ function display(result) {
               ' ratio: ' + result.promise / result.sync) + '</p>';
 }
 
-function makePromiseReader(numChunks) {
-  var data = new Array(numChunks);
-  for (var i = 0; i < data.length; ++i) {
-    data[i] = new ArrayBuffer(128);
+function PromiseReader(numChunks) {
+  this._data = new Array(numChunks);
+  for (var i = 0; i < this._data.length; ++i) {
+    this._data[i] = new ArrayBuffer(128);
   }
-  var nextChunk = 0;
 
-  return {
-    read: function() {
-      if (nextChunk >= data.length) {
-        return Promise.resolve({ value: undefined, done: true });
-      }
-      return Promise.resolve({ value: data[nextChunk++], done: false });
-    }
-  };
+  this._nextChunk = 0;
 }
 
+PromiseReader.prototype.read = function () {
+  if (this._nextChunk >= this._data.length) {
+    return Promise.resolve({ value: undefined, done: true });
+  }
+  return Promise.resolve({ value: this._data[this._nextChunk++], done: false });
+};
+
 function executePromise(numChunks) {
-  var reader = makePromiseReader(numChunks);
+  var reader = new PromiseReader(numChunks);
   var start = performance.now();
 
   return reader.read().then(handleChunk);
@@ -84,25 +81,24 @@ function executePromise(numChunks) {
   }
 }
 
-function makeSyncReader(numChunks) {
-  var data = new Array(numChunks);
-  for (var i = 0; i < data.length; ++i) {
-    data[i] = new ArrayBuffer(1024);
+function SyncReader(numChunks) {
+  this._data = new Array(numChunks);
+  for (var i = 0; i < this._data.length; ++i) {
+    this._data[i] = new ArrayBuffer(128);
   }
-  var nextChunk = 0;
 
-  return {
-    read: function() {
-      if (nextChunk >= data.length) {
-        return { value: undefined, done: true };
-      }
-      return { value: data[nextChunk++], done: false };
-    }
-  };
+  this._nextChunk = 0;
 }
 
+SyncReader.prototype.read = function () {
+  if (this._nextChunk >= this._data.length) {
+    return { value: undefined, done: true };
+  }
+  return { value: this._data[this._nextChunk++], done: false };
+};
+
 function executeSync(numChunks) {
-  var reader = makeSyncReader(numChunks);
+  var reader = new SyncReader(numChunks);
   var start = performance.now();
   var result;
 
@@ -127,3 +123,5 @@ function execute(numChunks) {
     return { numChunks: numChunks, sync: syncTime, promise: dur };
   });
 }
+
+loadHandler();
