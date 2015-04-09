@@ -1,5 +1,5 @@
+/*
 var suite = new Benchmark.Suite();
-
 suite
 .add('sync', function (deferred) {
   executeSync(10);
@@ -20,8 +20,11 @@ suite
   console.log('Error has occured: "' + event.target.error.message + '" in ' + event.target.name);
 })
 .run();
+*/
 
-/*function loadHandler() {
+loadHandler();
+
+function loadHandler() {
   console.log("loaded");
   execute(100).then(function() {
     return execute(10).then(display);
@@ -35,13 +38,13 @@ suite
 }
 
 function display(result) {
-  console.log('chunks: ' + result.numChunks +
+  document.querySelector('#output').innerHTML += ('<p>chunks: ' + result.numChunks +
               ' sync: ' + result.sync + ' (' +
                 (result.sync / result.numChunks) + '/chunk)' +
               ' promise: ' + result.promise + ' (' +
                 (result.promise / result.numChunks) + '/chunk)' +
-              ' ratio: ' + result.promise / result.sync);
-}*/
+              ' ratio: ' + result.promise / result.sync) + '</p>';
+}
 
 function makePromiseReader(numChunks) {
   var data = new Array(numChunks);
@@ -62,12 +65,14 @@ function makePromiseReader(numChunks) {
 
 function executePromise(numChunks) {
   var reader = makePromiseReader(numChunks);
+  var start = performance.now();
 
   return reader.read().then(handleChunk);
 
   function handleChunk(result) {
     if (result.done) {
-      return;
+      var end = performance.now();
+      return end - start;
     }
 
     // Avoid loop being optimized away
@@ -98,13 +103,15 @@ function makeSyncReader(numChunks) {
 
 function executeSync(numChunks) {
   var reader = makeSyncReader(numChunks);
+  var start = performance.now();
   var result;
 
   while (true) {
     result = reader.read();
 
     if (result.done) {
-      return;
+      var end = performance.now();
+      return end - start;
     }
 
     // Avoid loop being optimized away
